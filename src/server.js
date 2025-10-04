@@ -1,59 +1,35 @@
 // src/server.js
 import express from 'express';
 import cors from 'cors';
-import pino from 'pino-http';
+// import pino from 'pino-http';
 import 'dotenv/config';
+import { connectMongoDB } from './db/connectMongoDB.js';
+import { logger } from './middleware/logger.js';
+import { notFoundHandler } from './middleware/notFoundHandler.js';
+import { errorHandler } from './middleware/errorHandler.js';
+
+import notesRoutes from './routes/notesRoutes.js';
+// import { Note } from './models/note.js';
 
 const app = express();
 const PORT = process.env.PORT ?? 3030;
 
-// Middleware для парсингу JSON
-app.use(express.json());
-app.use(cors()); // Дозволяє запити з будь-яких джерел
-app.use(
-  pino({
-    level: 'info',
-    transport: {
-      target: 'pino-pretty',
-      options: {
-        colorize: true,
-        translateTime: 'HH:MM:ss',
-        ignore: 'pid,hostname',
-        messageFormat:
-          '{req.method} {req.url} {res.statusCode} - {responseTime}ms',
-        hideObject: true,
-      },
-    },
-  }),
-);
+// Глобальні middleware
+app.use(logger); // 1. Логер першим — бачить усі запити
+app.use(express.json()); // 2. Парсинг JSON-тіла
+app.use(cors()); // 3. Дозвіл для запитів з інших доменів
 
-// Перший маршрут
-app.get('/notes', (req, res) => {
-  res.status(200).json({ message: 'Retrieved all notes' });
-});
+// підключаємо групу маршрутів notes
+app.use(notesRoutes);
 
-app.get('/notes/:noteId', (req, res) => {
-  res
-    .status(200)
-    .json({ message: `Retrieved note with ID: ${req.params.noteId}` });
-});
+// 404 — якщо маршрут не знайдено
+app.use(notFoundHandler);
 
-app.get('/test-error', () => {
-  throw new Error('Simulated server error');
-});
+// Error — якщо під час запиту виникла помилка
+app.use(errorHandler);
 
-// Middleware 404 (після всіх маршрутів)
-app.use((req, res) => {
-  res.status(404).json({ message: 'Route not found' });
-});
-
-// Middleware для обробки помилок
-app.use((err, req, res, next) => {
-  console.error('Error:', err.message);
-  res.status(500).json({
-    message: err.message,
-  });
-});
+// підключення до MongoDB
+await connectMongoDB();
 
 // Запуск сервера
 app.listen(PORT, () => {
