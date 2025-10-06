@@ -20,5 +20,5 @@ router.patch('/notes/:noteId', updateNote);
 
 // router.get('/test-error', () => {
 //   throw new Error('Simulated server error');
-// }); Eat shit AI
+// });
 export default router;

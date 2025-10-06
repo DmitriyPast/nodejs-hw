@@ -12,7 +12,7 @@ export async function getNoteById(req, res, next) {
   // Код що був до цього
   // if (!note) return res.status(404).json({ message: 'Note not found' });
   // Додаємо базову обробку помилки замість res.status(404)
-  if (!note) return next(createHttpError(404, 'Student not found'));
+  if (!note) return next(createHttpError(404, 'Note not found'));
   res.status(200).json(note);
 }
 
