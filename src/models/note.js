@@ -24,24 +24,8 @@ const noteSchema = new Schema(
   { timestamps: true, versionKey: false },
 );
 
+// Додаємо текстовий індекс: кажемо MongoDB, що по полю name можна робити $text
+noteSchema.index({ title: 'text', content: 'text' });
+// noteSchema.index({});
+
 export const Note = model('Note', noteSchema);
-
-// \\ src\models\student.js
-// import { Schema } from 'mongoose';
-// const studentSchema = new Schema(
-//   {
-//     name: { type: String, required: true },
-//     age: { type: Number, required: true },
-//     gender: { type: String, required: true, enum: ['male', 'female', 'other'] },
-//     avgMark: { type: Number, required: true },
-//     onDuty: { type: Boolean, required: true, default: false },
-//   },
-//   { timestamps: true, versionKey: false },
-// );
-
-// type — тип даних (String, Number, Boolean).
-// required — обов’язкове поле.
-// enum — перелік допустимих значень (наприклад, для gender).
-// default — значення за замовчуванням, якщо поле не передано.
-// timestamps — автоматично додає createdAt і updatedAt.
-// versionKey: false — вимикає службове поле __v.
