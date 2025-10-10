@@ -3,25 +3,25 @@ import { Note } from '../models/note.js';
 
 export async function getAllNotes(req, res) {
   const { page = 1, perPage = 10, search, tag } = req.query;
-  console.log(req.query);
+  // console.log(req.query);
   const notesQuery = Note.find();
   const skip = (page - 1) * perPage;
 
   if (tag) notesQuery.where('tag').equals(tag);
   if (search) notesQuery.where({ $text: { $search: search } });
 
-  const [totalItems, notes] = await Promise.all([
+  const [totalNotes, notes] = await Promise.all([
     notesQuery.clone().countDocuments(),
     notesQuery.skip(skip).limit(perPage),
   ]);
 
-  const totalPages = Math.ceil(totalItems / perPage);
+  const totalPages = Math.ceil(totalNotes / perPage);
 
   // res.status(200).json(notes);
   res.status(200).json({
     page,
     perPage,
-    totalItems,
+    totalNotes,
     totalPages,
     notes,
   });
@@ -30,8 +30,7 @@ export async function getAllNotes(req, res) {
 export async function getNoteById(req, res, next) {
   const { noteId } = req.params;
   const note = await Note.findById(noteId);
-  // Код що був до цього
-  // if (!note) return res.status(404).json({ message: 'Note not found' });
+
   // Додаємо базову обробку помилки замість res.status(404)
   if (!note) return next(createHttpError(404, 'Note not found'));
   res.status(200).json(note);
