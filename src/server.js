@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import { errors } from 'celebrate';
 import 'dotenv/config';
 import { connectMongoDB } from './db/connectMongoDB.js';
@@ -15,6 +16,7 @@ const PORT = process.env.PORT ?? 3030;
 app.use(logger); // 1. Логер першим — бачить усі запити
 app.use(express.json()); // 2. Парсинг JSON-тіла
 app.use(cors()); // 3. Дозвіл для запитів з інших доменів
+app.use(cookieParser()); //
 
 // підключаємо групу маршрутів notes
 app.use(notesRoutes);
