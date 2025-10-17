@@ -21,4 +21,9 @@ function f1() {
   return delete this.toObject().password;
 }
 
+userSchema.pre('save', function (next) {
+  if (!this.username) this.username = this.email;
+  next();
+});
+
 export const User = model('User', userSchema);
