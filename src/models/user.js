@@ -18,7 +18,8 @@ function f() {
 }
 
 function f1() {
-  return delete this.toObject().password;
+  const obj = this.toObject();
+  return delete obj.password && obj;
 }
 
 userSchema.pre('save', function (next) {
