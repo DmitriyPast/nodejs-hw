@@ -1,7 +1,9 @@
-import { FIFTEEN_MINUTES, ONE_DAY } from '../constants/time';
-import { Session } from '../models/session';
+import crypto from 'crypto';
+import { FIFTEEN_MINUTES, ONE_DAY } from '../constants/time.js';
+import { Session } from '../models/session.js';
 
 export function createSession(userId) {
+  // console.log(`crypto.randomBytes test: ${crypto.randomBytes(30).toString('base64')}`);
   return Session.create({
     userId,
     accessToken: crypto.randomBytes(30).toString('base64'),
@@ -12,6 +14,8 @@ export function createSession(userId) {
 }
 
 export function setSessionCookies(res, session) {
+  // console.log(`setSessionCookies Session: ${session}`);
+  // console.log(session);
   const options = { httpOnly: true, secure: true, sameSite: 'none' };
 
   res.cookie('accessToken', session.accessToken, {

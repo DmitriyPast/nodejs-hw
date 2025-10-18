@@ -5,10 +5,9 @@ import { createSession, setSessionCookies } from '../services/auth.js';
 
 export async function registerUser(req, res, next) {
   const { email, password } = req.body;
-  console.log(email, password);
+  // console.log(email, password);
   if (await User.findOne({ email }))
     return next(createHttpError(400, 'Email in use'));
-  // console.log(req.body);
 
   // Хешуємо пароль
   const encPass = await bcrypt.hash(password, 10);
@@ -20,9 +19,9 @@ export async function registerUser(req, res, next) {
   });
 
   // Створюємо нову сесію
-  const newUserSession = createSession(newUser._id);
-  // Встановлюємо куки, передаємо об'єкт відповіді та сесію
-  setSessionCookies(res, newUserSession);
+  // const newUserSession = await createSession(newUser._id);
+  // Встановлюємо куки, передаємо об'єкт відповіді та нову сесію
+  setSessionCookies(res, await createSession(newUser._id));
 
   // Відправляємо дані користувача (без пароля) у відповіді
   res.status(201).json(newUser);
