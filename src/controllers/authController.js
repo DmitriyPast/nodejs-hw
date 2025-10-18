@@ -69,3 +69,15 @@ export async function refreshUserSession(req, res, next) {
 
   res.status(200).json({ message: 'Session refreshed' });
 }
+
+export async function logoutUser(req, res) {
+  // якщо є сесія видаляємо її з бази і кук
+  if (req.cookies.sessionId) {
+    await Session.findByIdAndDelete(req.cookies.sessionId);
+    res.clearCookie('sessionId');
+  } // видаляємо решту кук
+  res.clearCookie('accessToken');
+  res.clearCookie('refreshToken');
+
+  res.status(204).send();
+}
