@@ -50,21 +50,21 @@ export async function loginUser(req, res, next) {
 export async function refreshUserSession(req, res, next) {
   const { sessionId, refreshToken } = req.cookies;
   // console.log(req.cookies);
-  // перевіряємо чи є сесія в базі
+  // 1. Знаходимо поточну сесію за id сесії та рефреш токеном
   const session = await Session.findOne({ _id: sessionId, refreshToken });
-
+  // 2. Якщо такої сесії нема, повертаємо помилку
   if (!session) return next(createHttpError(401, 'Session not found'));
   // if (new Date() > session.refreshTokenValidUntil)
   //   return (
   //     (await Session.findByIdAndDelete(session._id)) &&
   //     next(createHttpError(401, 'Session token expired'))
   //   );
-  // видаляємо стару сесію
-  await Session.findByIdAndDelete(session._id);
-  // перевіряємо чи не вийшов строк дії токена
+  // Якщо термін дії рефреш токена вийшов, повертаємо помилку
   if (new Date() > session.refreshTokenValidUntil)
     return next(createHttpError(401, 'Session token expired'));
-  // створюємо нову сесію і встановлюємо куки
+  // 4. Якщо всі перевірки пройшли добре, видаляємо поточну сесію
+  await Session.findByIdAndDelete(session._id);
+  // 5. Створюємо нову сесію та додаємо кукі
   setSessionCookies(res, await createSession(session.userId));
 
   res.status(200).json({ message: 'Session refreshed' });
