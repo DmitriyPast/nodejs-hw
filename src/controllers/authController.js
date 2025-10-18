@@ -2,10 +2,12 @@ import createHttpError from 'http-errors';
 import bcrypt from 'bcrypt';
 import { User } from '../models/user.js';
 import { createSession, setSessionCookies } from '../services/auth.js';
+import { Session } from '../models/session.js';
 
 export async function registerUser(req, res, next) {
   const { email, password } = req.body;
   // console.log(email, password);
+  // перевіряємо чи є такий email, якщо є повертаємо помилку
   if (await User.findOne({ email }))
     return next(createHttpError(400, 'Email in use'));
 
@@ -17,7 +19,6 @@ export async function registerUser(req, res, next) {
     email,
     password: encPass,
   });
-
   // Створюємо нову сесію
   // const newUserSession = await createSession(newUser._id);
   // Встановлюємо куки, передаємо об'єкт відповіді та нову сесію
@@ -25,4 +26,21 @@ export async function registerUser(req, res, next) {
 
   // Відправляємо дані користувача (без пароля) у відповіді
   res.status(201).json(newUser);
+}
+
+export async function loginUser(req, res, next) {
+  const { email, password } = req.body;
+  const user = await User.findOne({ email });
+  // якщо користувача немає в базі повертаємо помилку
+  if (!user) return next(createHttpError(404, 'User not found'));
+  // перевіряємо чи співдадає введенй пароль із зашифрованим у базі
+  if (!(await bcrypt.compare(password, user.password)))
+    return next(createHttpError(401, 'Invalid credentials'));
+  console.log(user._id);
+  // знаходимо і видаляємо попередню сесію якщо є
+  await Session.findOneAndDelete({ userId: user._id }); //<== userId in Session is the same as _id in User^^
+  // створюємо нову сесію і встановлюємо куки
+  setSessionCookies(res, await createSession(user._id));
+
+  res.status(200).json(user);
 }
