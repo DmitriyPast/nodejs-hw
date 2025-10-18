@@ -30,17 +30,42 @@ export async function registerUser(req, res, next) {
 
 export async function loginUser(req, res, next) {
   const { email, password } = req.body;
-  const user = await User.findOne({ email });
   // якщо користувача немає в базі повертаємо помилку
-  if (!user) return next(createHttpError(404, 'User not found'));
+  const user = await User.findOne({ email });
+
+  if (!user) return next(createHttpError(401, 'User not found'));
   // перевіряємо чи співдадає введенй пароль із зашифрованим у базі
   if (!(await bcrypt.compare(password, user.password)))
     return next(createHttpError(401, 'Invalid credentials'));
-  console.log(user._id);
+  // console.log(user._id);
+
   // знаходимо і видаляємо попередню сесію якщо є
   await Session.findOneAndDelete({ userId: user._id }); //<== userId in Session is the same as _id in User^^
   // створюємо нову сесію і встановлюємо куки
   setSessionCookies(res, await createSession(user._id));
 
   res.status(200).json(user);
+}
+
+export async function refreshUserSession(req, res, next) {
+  const { sessionId, refreshToken } = req.cookies;
+  // console.log(req.cookies);
+  // перевіряємо чи є сесія в базі
+  const session = await Session.findOne({ _id: sessionId, refreshToken });
+
+  if (!session) return next(createHttpError(401, 'Session not found'));
+  // if (new Date() > session.refreshTokenValidUntil)
+  //   return (
+  //     (await Session.findByIdAndDelete(session._id)) &&
+  //     next(createHttpError(401, 'Session token expired'))
+  //   );
+  // видаляємо стару сесію
+  await Session.findByIdAndDelete(session._id);
+  // перевіряємо чи не вийшов строк дії токена
+  if (new Date() > session.refreshTokenValidUntil)
+    return next(createHttpError(401, 'Session token expired'));
+  // створюємо нову сесію і встановлюємо куки
+  setSessionCookies(res, await createSession(session.userId));
+
+  res.status(200).json({ message: 'Session refreshed' });
 }
