@@ -1,6 +1,10 @@
 import { celebrate } from 'celebrate';
 import { Router } from 'express';
-import { authSchema } from '../validations/authValidation.js';
+import {
+  // authSchema,
+  loginUserSchema,
+  registerUserSchema,
+} from '../validations/authValidation.js';
 import {
   loginUser,
   logoutUser,
@@ -10,12 +14,9 @@ import {
 
 const router = Router();
 
-router.post('/auth/register', celebrate(authSchema), registerUser);
-router.post('/auth/login', celebrate(authSchema), loginUser);
+router.post('/auth/register', celebrate(registerUserSchema), registerUser);
+router.post('/auth/login', celebrate(loginUserSchema), loginUser);
 router.post('/auth/refresh', refreshUserSession);
 router.post('/auth/logout', logoutUser);
 
 export default router;
-// (req, res) => {
-//   return res.status(200).json('ligma balls').send();
-// }

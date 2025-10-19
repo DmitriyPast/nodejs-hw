@@ -10,17 +10,15 @@ export const userSchema = new Schema(
 );
 
 // Перевизначаємо метод toJSON
-userSchema.methods.toJSON = f1;
-function f() {
-  const obj = this.toObject();
-  delete obj.password;
-  return obj;
-}
-
-function f1() {
+userSchema.methods.toJSON = function () {
   const obj = this.toObject();
   return delete obj.password && obj;
-}
+};
+// function f() {
+//   const obj = this.toObject();
+//   delete obj.password;
+//   return obj;
+// }
 
 userSchema.pre('save', function (next) {
   if (!this.username) this.username = this.email;
