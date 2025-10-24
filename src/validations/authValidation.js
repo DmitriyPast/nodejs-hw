@@ -20,3 +20,9 @@ export const loginUserSchema = {
   }),
 };
 //cpatb_oxota
+
+export const requestResetEmailSchema = {
+  [Segments.BODY]: Joi.object({
+    email: Joi.string().email().required(),
+  }),
+};

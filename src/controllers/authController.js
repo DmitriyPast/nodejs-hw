@@ -81,3 +81,14 @@ export async function logoutUser(req, res) {
 
   res.status(204).send();
 }
+
+export async function requestResetEmail(req, res, next) {
+  const user = await User.findOne({ email: req.body.email });
+  if (!user) return defRes(res);
+
+  defRes(res);
+}
+
+function defRes(res) {
+  res.status(200).json({ message: 'Password reset email sent successfully' });
+}
