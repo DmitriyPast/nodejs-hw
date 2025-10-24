@@ -1,5 +1,6 @@
 import createHttpError from 'http-errors';
 import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 import { User } from '../models/user.js';
 import { createSession, setSessionCookies } from '../services/auth.js';
 import { Session } from '../models/session.js';
@@ -85,6 +86,11 @@ export async function logoutUser(req, res) {
 export async function requestResetEmail(req, res, next) {
   const user = await User.findOne({ email: req.body.email });
   if (!user) return defRes(res);
+  const token = jwt.sign(
+    { sub: user._id, email: user.email },
+    process.env.JWT_SECRET,
+    { expiresIn: '15m' },
+  );
 
   defRes(res);
 }
