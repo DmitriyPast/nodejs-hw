@@ -7,6 +7,7 @@ import handlebars from 'handlebars';
 import { User } from '../models/user.js';
 import { createSession, setSessionCookies } from '../services/auth.js';
 import { Session } from '../models/session.js';
+import { sendEmail } from '../utils/sendEmail.js';
 
 export async function registerUser(req, res, next) {
   const { email, password } = req.body;
@@ -107,6 +108,20 @@ export async function requestResetEmail(req, res, next) {
     name: user.username,
     link: `${process.env.FRONTEND_DOMAIN}/reset-password?token=${resetToken}`,
   });
+
+  try {
+    await sendEmail({
+      from: process.env.SMTP_FROM,
+      to: req.body.email,
+      subject: 'Reset your password',
+      // 5. Передаємо HTML у функцію надписання пошти
+      html,
+    });
+  } catch {
+    next(
+      createHttpError(500, 'Failed to send the email, please try again later.'),
+    );
+  }
 
   defRes(res);
 }
