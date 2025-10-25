@@ -1,6 +1,9 @@
 import createHttpError from 'http-errors';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import handlebars from 'handlebars';
 import { User } from '../models/user.js';
 import { createSession, setSessionCookies } from '../services/auth.js';
 import { Session } from '../models/session.js';
@@ -85,12 +88,25 @@ export async function logoutUser(req, res) {
 
 export async function requestResetEmail(req, res, next) {
   const user = await User.findOne({ email: req.body.email });
-  if (!user) return defRes(res);
-  const token = jwt.sign(
+
+  if (!user) return defRes(res); // стандартна відповідь сервера
+
+  const resetToken = jwt.sign(
     { sub: user._id, email: user.email },
     process.env.JWT_SECRET,
     { expiresIn: '15m' },
   );
+  // 1. Формуємо шлях до шаблона
+  const templatePath = path.resolve('src/templates/reset-password-email.html');
+  // 2. Читаємо шаблон
+  const templateSource = await fs.readFile(templatePath, 'utf-8');
+  // 3. Готуємо шаблон до заповнення
+  const template = handlebars.compile(templateSource);
+  // 4. Формуємо із шаблона HTML документ з динамічними даними
+  const html = template({
+    name: user.username,
+    link: `${process.env.FRONTEND_DOMAIN}/reset-password?token=${resetToken}`,
+  });
 
   defRes(res);
 }
