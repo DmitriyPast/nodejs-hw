@@ -126,7 +126,7 @@ function defRes(res) {
 }
 
 export async function resetPassword(req, res, next) {
-  // 1. Перевіряємо/декодуємо токен
+  // Перевіряємо/декодуємо токен
   try {
     var payload = jwt.verify(req.body.token, process.env.JWT_SECRET);
     console.log(payload);
@@ -141,7 +141,7 @@ export async function resetPassword(req, res, next) {
 
   // Якщо користувач існує
   // створюємо новий пароль і оновлюємо користувача
-  const hashedPassword = bcrypt.hash(req.body.password, 10);
+  const hashedPassword = await bcrypt.hash(req.body.password, 10);
   await User.updateOne({ _id: payload.sub }, { password: hashedPassword });
 
   // Інвалідовуємо всі можливі попередні сесії користувача
