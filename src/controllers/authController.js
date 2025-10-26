@@ -84,7 +84,7 @@ export async function logoutUser(req, res) {
 export async function requestResetEmail(req, res, next) {
   const user = await User.findOne({ email: req.body.email });
 
-  if (!user) return defRes(res); // якщо немає користувача - стандартна відповідь сервера
+  if (!user) return sendResetEmailResponse(res); // якщо немає користувача - стандартна відповідь сервера
 
   // Створюємо JWT токен
   const resetToken = jwt.sign(
@@ -118,10 +118,10 @@ export async function requestResetEmail(req, res, next) {
     );
   }
 
-  defRes(res);
+  sendResetEmailResponse(res);
 }
 
-function defRes(res) {
+function sendResetEmailResponse(res) {
   res.status(200).json({ message: 'Password reset email sent successfully' });
 }
 
@@ -134,18 +134,17 @@ export async function resetPassword(req, res, next) {
     // Повертаємо помилку якщо проблема при декодуванні
     return next(createHttpError(401, 'Invalid or expired token'));
   }
-  // const user = await User.find({ _id: payload.sub, email: payload.email });
+  const user = await User.findOne({ _id: payload.sub, email: payload.email });
   // Шукаємо користувача
-  if (!(await User.findOne({ _id: payload.sub, email: payload.email })))
-    return next(createHttpError(404, 'User not found'));
+  if (!user);
 
   // Якщо користувач існує
   // створюємо новий пароль і оновлюємо користувача
   const hashedPassword = await bcrypt.hash(req.body.password, 10);
-  await User.updateOne({ _id: payload.sub }, { password: hashedPassword });
+  await User.updateOne({ _id: user._id }, { password: hashedPassword });
 
   // Інвалідовуємо всі можливі попередні сесії користувача
-  await Session.deleteMany({ userId: payload.sub });
+  await Session.deleteMany({ userId: user._id });
 
   // Повертаємо успішну відповідь
   res.status(200).json({ message: 'Password reset successfully' });
