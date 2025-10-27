@@ -134,9 +134,9 @@ export async function resetPassword(req, res, next) {
     // Повертаємо помилку якщо проблема при декодуванні
     return next(createHttpError(401, 'Invalid or expired token'));
   }
-  const user = await User.findOne({ _id: payload.sub, email: payload.email });
   // Шукаємо користувача
-  if (!user);
+  const user = await User.findOne({ _id: payload.sub, email: payload.email });
+  if (!user) return next(createHttpError(404, 'User not found'));
 
   // Якщо користувач існує
   // створюємо новий пароль і оновлюємо користувача
